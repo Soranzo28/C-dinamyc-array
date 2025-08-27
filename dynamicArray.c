@@ -18,8 +18,8 @@ array_clear() //Removes all array elements without freeing them.
 array_insert() //Inserts a new value at a specified index, pushing all elements to the right
 array_shrink() //Reduces array's capacity to be equals to used elements
 array_find() //Searches for a value and returns it index
-TODO array_sort //Sort array's elements
-TODO array_reverse //Inverts element's order
+array_sort //Sort array's elements
+array_reverse //Inverts element's order
 TODO array_binary_search(int already_sorted) //Uses binary search to find an element, a adicional parameter let the user choose if he wants to the func to sort it before or if its already sorted
 */
 
@@ -378,46 +378,88 @@ bool array_remove_by_index(dArray* array, size_t index){
     return true;
 }
 
-
+bool array_reverse(dArray* array){
+    void *header = NULL, *tail = NULL;
+    size_t type_size = get_type_size(array->type);
+    header = (char*)array->dArray;
+    tail = (char*)array->dArray + (array->used_size-1) * type_size;
+    void* temp = malloc(type_size);
+    if (!temp){
+        printf("ERROR! Unable to allocate auxiliar array!\n");
+        return false;
+    }
+    printf("\n\n entrou no loop\n\n");
+    while(1){
+        memcpy(temp, tail, type_size);
+        memcpy(tail, header, type_size);
+        memcpy(header, temp, type_size);
+        header += type_size;
+        tail -= type_size;
+        if (header == tail){
+            break;
+        }
+        if (header+type_size == tail){
+            memcpy(temp, tail, type_size);
+            memcpy(tail, header, type_size);
+            memcpy(header, temp, type_size);  
+            break;
+        }
+    }
+    return true;
+}
 
 int main(void){
+    // --- SETUP ---
     dArray* array = array_new(INT, 3);
+    if (!array) {
+        return 1; // Sai se a criação falhar
+    }
 
     int x = 50;
-    for (int i = 0; i < 20; i++){
-        array_append(array, &x);
+    printf("Adicionando 20 elementos, de 50 a 31...\n");
+    for (int i = 0; i < 20; i++) {
+        if (!array_append(array, &x)) {
+            fprintf(stderr, "Falha ao adicionar elemento!\n");
+            break;
+        }
         x--;
     }
+    printf("Elementos adicionados com sucesso.\n");
+    array_reverse(array);
+    // --- BLOCO DE DEBUG ---
+    printf("\n--- INICIANDO DEBUG ---\n");
+    printf("Tipo do Array: %d (0=INT)\n", array->type);
+    printf("Tamanho em Uso (used_size): %zu\n", array->used_size);
+    printf("Tamanho Total (total_size): %zu\n", array->total_size);
 
+    if (array->used_size > 0) {
+        printf("Conteúdo completo do array:\n");
+        for (size_t i = 0; i < array->used_size; i++) {
+            printf("  Índice %zu: %d\n", i, ((int*)array->dArray)[i]);
+        }
 
-    // for (int i = 0; i < array->used_size; i ++){
-        //     printf("[%d]: %d\n", i, ((int*)pointer)[i]);
-        // }
+        // --- A VERIFICAÇÃO FINAL ---
+        printf("\nVerificando o último elemento (índice %zu):\n", array->used_size - 1);
         
-        // size_t index = 5;
-        // array_remove_by_index(array, index);
+        // Calculando o ponteiro exatamente como discutimos
+        void* pointer_para_ultimo = (char*)array->dArray + (array->used_size - 1) * get_type_size(array->type);
+        int ultimo_valor_lido = *(int*)pointer_para_ultimo;
         
-    // int temp_Var = 99;
-    // array_set(array, 5, &temp_Var);
-    // array_insert(array, 5, &temp_Var);
-    void* pointer = array->dArray;
-    for (int i = 0; i < array->used_size; i++){
-        printf("[%d]: %d\n", i, ((int*)pointer)[i]);
+        printf("  Valor lido: %d\n", ultimo_valor_lido);
+
+        if (ultimo_valor_lido == 31) {
+            printf("  Resultado: CORRETO! O valor é 31, como esperado.\n");
+        } else {
+            printf("  Resultado: INCORRETO! O valor deveria ser 31.\n");
+        }
+
+    } else {
+        printf("O array está vazio.\n");
     }
-    // printf("Used Size: %zu\nTotal Size: %zu\n", array->used_size, array->total_size);
-    // array_shrink(array);
-    // printf("\n-------------------\n");
-    // printf("Used Size: %zu\nTotal Size: %zu\n", array->used_size, array->total_size);
-    // array_append(array, &temp_Var);
-    // size_t index;
-    // int value = 99;
-    // array_find(array, &value, &index);
-    // printf("Index: %zu\nValor: %d\n", index, ((int*)pointer)[index]);
-    printf("\n------------------------\n");
-    array_sort(array);
-    pointer = array->dArray;
-    for (int i = 0; i < array->used_size; i++){
-        printf("[%d]: %d\n", i, ((int*)pointer)[i]);
-    }
+    printf("--- FIM DO DEBUG ---\n\n");
+
+    // Lembre-se de destruir o array no final
+    array_delete(&array);
+    
     return 0;
 }
