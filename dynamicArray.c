@@ -11,22 +11,16 @@ array_delete(dArray** array) //Deletes the current array
 array_pop(dArray* array, void* store_var) //Removes the last element and returns it to specified variable
 array_remove_by_value(dArray* array, void* value) //Remove the first ocurrence of the value
 array_remove_by_index(dArray* array, size_t index) //Remove the element at specified index
-
----------
-TODO array_get() //Takes the value at index and copy to specified variable
-TODO array_set() //Substitues the value at index for another
-TODO array_is_empty() //Verify if the array is empty
-TODO array_clear() //Removes all array elements without freeing them.
----------
-TODO array_insert() //Inserts a new value at a specified index, pushing all elements to the right
-TODO array_shrink() //Reduces array's capacity to be equals to used elements
-TODO array_find() //Searches for a value and returns it index
----------
+array_get() //Takes the value at index and copy to specified variable
+array_set() //Substitues the value at index for another
+array_is_empty() //Verify if the array is empty
+array_clear() //Removes all array elements without freeing them.
+array_insert() //Inserts a new value at a specified index, pushing all elements to the right
+array_shrink() //Reduces array's capacity to be equals to used elements
+array_find() //Searches for a value and returns it index
 TODO array_sort //Sort array's elements
 TODO array_reverse //Inverts element's order
 TODO array_binary_search(int already_sorted) //Uses binary search to find an element, a adicional parameter let the user choose if he wants to the func to sort it before or if its already sorted
-
-
 */
 
 typedef enum{
