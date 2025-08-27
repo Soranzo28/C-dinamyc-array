@@ -36,6 +36,25 @@ typedef struct{
     var_types type;
 }dArray;
 
+int compare_int(const void* a, const void* b) {
+   return (*(int*)a - *(int*)b);
+}
+
+int compare_float(const void* a, const void* b) {
+   float var_a = *(const float*)a;
+   float var_b = *(const float*)b;
+   if (var_a > var_b){return 1;}
+   if (var_a < var_b){return -1;}
+   else{return 0;}
+}
+
+int compare_double(const void* a, const void* b) {
+   double var_a = *(const double*)a;
+   double var_b = *(const double*)b;
+   if (var_a > var_b){return 1;}
+   if (var_a < var_b){return -1;}
+   else{return 0;}
+}
 
 size_t get_type_size(var_types type){
     switch(type){
@@ -46,6 +65,22 @@ size_t get_type_size(var_types type){
     printf("ERROR! Invalid type!\n");
     return 0;
 }
+
+void array_sort(dArray* array){
+    size_t type_size = get_type_size(array->type);
+    switch(array->type){
+        case INT:
+            qsort(array->dArray, array->used_size, type_size, compare_int);
+            return;
+        case FLOAT:
+            qsort(array->dArray, array->used_size, type_size, compare_float);
+            return;
+        case DOUBLE:
+            qsort(array->dArray, array->used_size, type_size, compare_double);
+            return;
+    }
+}
+
 
 bool array_find(dArray* array, void* value, size_t* store_index){
     size_t type_size = get_type_size(array->type);
@@ -348,10 +383,10 @@ bool array_remove_by_index(dArray* array, size_t index){
 int main(void){
     dArray* array = array_new(INT, 3);
 
-    int x = 1;
+    int x = 50;
     for (int i = 0; i < 20; i++){
         array_append(array, &x);
-        x++;
+        x--;
     }
 
 
@@ -362,21 +397,27 @@ int main(void){
         // size_t index = 5;
         // array_remove_by_index(array, index);
         
-    int temp_Var = 99;
+    // int temp_Var = 99;
     // array_set(array, 5, &temp_Var);
-    array_insert(array, 5, &temp_Var);
+    // array_insert(array, 5, &temp_Var);
     void* pointer = array->dArray;
     for (int i = 0; i < array->used_size; i++){
         printf("[%d]: %d\n", i, ((int*)pointer)[i]);
     }
-    printf("Used Size: %zu\nTotal Size: %zu\n", array->used_size, array->total_size);
-    array_shrink(array);
-    printf("\n-------------------\n");
-    printf("Used Size: %zu\nTotal Size: %zu\n", array->used_size, array->total_size);
-    array_append(array, &temp_Var);
-    size_t index;
-    int value = 99;
-    array_find(array, &value, &index);
-    printf("Index: %zu\nValor: %d\n", index, ((int*)pointer)[index]);
+    // printf("Used Size: %zu\nTotal Size: %zu\n", array->used_size, array->total_size);
+    // array_shrink(array);
+    // printf("\n-------------------\n");
+    // printf("Used Size: %zu\nTotal Size: %zu\n", array->used_size, array->total_size);
+    // array_append(array, &temp_Var);
+    // size_t index;
+    // int value = 99;
+    // array_find(array, &value, &index);
+    // printf("Index: %zu\nValor: %d\n", index, ((int*)pointer)[index]);
+    printf("\n------------------------\n");
+    array_sort(array);
+    pointer = array->dArray;
+    for (int i = 0; i < array->used_size; i++){
+        printf("[%d]: %d\n", i, ((int*)pointer)[i]);
+    }
     return 0;
 }
