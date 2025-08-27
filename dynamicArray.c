@@ -379,7 +379,7 @@ bool array_remove_by_index(dArray* array, size_t index){
 }
 
 bool array_reverse(dArray* array){
-    void *header = NULL, *tail = NULL;
+    char *header = NULL, *tail = NULL;
     size_t type_size = get_type_size(array->type);
     header = (char*)array->dArray;
     tail = (char*)array->dArray + (array->used_size-1) * type_size;
@@ -405,6 +405,7 @@ bool array_reverse(dArray* array){
             break;
         }
     }
+    free(temp);
     return true;
 }
 
