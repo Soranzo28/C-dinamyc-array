@@ -20,7 +20,7 @@ array_shrink() //Reduces array's capacity to be equals to used elements
 array_find() //Searches for a value and returns it index
 array_sort //Sort array's elements
 array_reverse //Inverts element's order
-TODO array_binary_search(int already_sorted) //Uses binary search to find an element, a adicional parameter let the user choose if he wants to the func to sort it before or if its already sorted
+array_binary_search(int already_sorted) //Uses binary search to find an element, a adicional parameter let the user choose if he wants to the func to sort it before or if its already sorted
 */
 
 typedef enum{
@@ -409,6 +409,47 @@ bool array_reverse(dArray* array){
     return true;
 }
 
+bool array_binary_search(dArray* array, void* element, bool already_sorted){
+    if (!already_sorted){
+        array_sort(array);
+    }
+    size_t type_size = get_type_size(array->type);
+    size_t middle_value = array->used_size / 2;
+    void* middle_value_pointer = (char*)array->dArray + (middle_value*type_size);
+    int header = 0, tail = array->used_size-1;
+    int cmp;
+    while(1){
+        switch(array->type){
+            case INT:
+                cmp = compare_int(middle_value_pointer, element);
+                break;
+            case FLOAT:
+                cmp = compare_float(middle_value_pointer, element);
+                break;
+            case DOUBLE:
+                cmp = compare_double(middle_value_pointer, element);
+                break;
+        }
+
+        if (cmp == 0){
+            printf("FOUND AT: %zu\n", middle_value);
+            return true;
+        }
+        if (cmp > 0){
+            tail = middle_value-1;
+        }
+        if (cmp < 0){
+            header = middle_value+1;
+        }
+        if (tail < header){
+            printf("NUMBER NOT FOUND!\n");
+            return false;
+        }
+        middle_value = header + (tail-header)/2;
+        middle_value_pointer = (char*)array->dArray + (middle_value*type_size);
+    }
+}
+
 int main(void){
     // --- SETUP ---
     dArray* array = array_new(INT, 3);
@@ -416,23 +457,22 @@ int main(void){
         return 1; // Sai se a criação falhar
     }
 
-    int x = 50;
+    int x = 1;
     printf("Adicionando 20 elementos, de 50 a 31...\n");
     for (int i = 0; i < 20; i++) {
         if (!array_append(array, &x)) {
             fprintf(stderr, "Falha ao adicionar elemento!\n");
             break;
         }
-        x--;
+        x++;
     }
     printf("Elementos adicionados com sucesso.\n");
-    array_reverse(array);
     // --- BLOCO DE DEBUG ---
     printf("\n--- INICIANDO DEBUG ---\n");
     printf("Tipo do Array: %d (0=INT)\n", array->type);
     printf("Tamanho em Uso (used_size): %zu\n", array->used_size);
     printf("Tamanho Total (total_size): %zu\n", array->total_size);
-
+    int elemento = 99;
     if (array->used_size > 0) {
         printf("Conteúdo completo do array:\n");
         for (size_t i = 0; i < array->used_size; i++) {
@@ -440,18 +480,11 @@ int main(void){
         }
 
         // --- A VERIFICAÇÃO FINAL ---
-        printf("\nVerificando o último elemento (índice %zu):\n", array->used_size - 1);
-        
-        // Calculando o ponteiro exatamente como discutimos
-        void* pointer_para_ultimo = (char*)array->dArray + (array->used_size - 1) * get_type_size(array->type);
-        int ultimo_valor_lido = *(int*)pointer_para_ultimo;
-        
-        printf("  Valor lido: %d\n", ultimo_valor_lido);
-
-        if (ultimo_valor_lido == 31) {
-            printf("  Resultado: CORRETO! O valor é 31, como esperado.\n");
-        } else {
-            printf("  Resultado: INCORRETO! O valor deveria ser 31.\n");
+        if (array_binary_search(array, &elemento, 1)){
+            printf("DEU CERTO PORRA!\n");
+        }
+        else{
+            printf("NAO DEU CERTO!\n");
         }
 
     } else {
@@ -459,6 +492,7 @@ int main(void){
     }
     printf("--- FIM DO DEBUG ---\n\n");
 
+    printf("%d\n", 5/2);
     // Lembre-se de destruir o array no final
     array_delete(&array);
     
