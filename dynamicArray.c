@@ -250,7 +250,7 @@ bool array_insert(dArray* array, size_t index, void* new_value){
         memmove(destination, source, bytes_to_move);
     }
     memcpy(source, new_value, type_size);
-    array->used_size++;
+    array->used_size++; 
     return true;
 }
 
