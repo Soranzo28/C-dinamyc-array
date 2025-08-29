@@ -47,6 +47,7 @@ I also used IA to help me debug parts of my code where i could not figure out wh
 ### My opinion about AI
 I think IA changed the world and it will keep changing for many many years, and the impact that it has on programming was immeasurable, I use it a lot to learn, and Its a phenomenal tool, at this project, the whole `main.c` was done by IA, and i think it's OK, because this file is just the presentation of what I made and implemented by myself.
 Other than this file, pretty much everything i did was taken out of my neurons, and I'm sure many of them died on this process, lol.
-
+### Makefile
+The WHOLE makefile was made by AI, i had no knowledge at all about makefiles, but now on i will study it to be able to make my own makefile on the next project!
 ## Conclusion
 Making this project was a big challenge, it had cool moments, boring moments, studying moments, neuron burn moments, but at the and, I can say that this thing works, and it is well documented, at least i hope so. Thank you for reading, see you on the next project!
