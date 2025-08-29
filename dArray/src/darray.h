@@ -24,4 +24,6 @@ bool array_find(dArray* array, void* value, size_t* store_index);
 void array_sort(dArray* array);
 bool array_reverse(dArray* array);
 bool array_binary_search(dArray* array, void* element, size_t* store_index, bool already_sorted);
+size_t array_get_size(const dArray* array);
+size_t array_get_capacity(const dArray* array);
 #endif

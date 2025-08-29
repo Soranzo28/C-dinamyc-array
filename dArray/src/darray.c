@@ -9,7 +9,7 @@
  * This struct stores all the necessary information for manipulation and operations.
  * Those fields should not be directly acessed, instead use the API functions. 
  * @see array_new()
- * @see array_destroy()
+ * @see array_delete()
  */
 struct dArray {
     void* dArray;      ///< Generic pointer to the array on the heap
@@ -24,6 +24,7 @@ static int compare_int(const void* a, const void* b);
 static int compare_float(const void* a, const void* b);
 static int compare_double(const void* a, const void* b);
 static size_t get_type_size(var_types type);
+static bool array_is_full(dArray* array);
 
 //Public functions implementation
 
@@ -493,6 +494,27 @@ bool array_binary_search(dArray* array, void* element, size_t* store_index, bool
         middle_value_pointer = (char*)array->dArray + (middle_value*type_size);
     }
 }
+
+/**
+ * @brief Get array->used_size
+ * 
+ * @param[in] array The target array
+ * @return array->used_size , if array == NULL returns 0
+ */
+size_t array_get_size(const dArray* array) {
+    return array ? array->used_size : 0;
+}
+
+/**
+ * @brief Get array->total_size
+ * 
+ * @param[in] array The target array
+ * @return array->total_size , if array == NULL returns 0
+ */
+size_t array_get_capacity(const dArray* array) {
+    return array ? array->total_size : 0;
+}
+
 //Static function implementation
 
 /**
@@ -580,4 +602,17 @@ size_t get_type_size(var_types type){
     }
     fprintf(stderr, "ERROR! Invalid type!\n");
     return 0;
+}
+
+/**
+ * @brief Checks if the target array is full
+ * 
+ * @param[in] array The target array
+ * @return True if total_size == used_size, false if not
+ */
+static bool array_is_full(dArray* array){
+    if ((array->total_size) == array->used_size){
+        return true;
+    }
+    return false;
 }
