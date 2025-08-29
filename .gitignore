@@ -1,3 +1,2 @@
 output
-main.o
-darray.o
+*.o
