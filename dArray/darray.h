@@ -23,5 +23,5 @@ bool array_shrink(dArray* array);
 bool array_find(dArray* array, void* value, size_t* store_index);
 void array_sort(dArray* array);
 bool array_reverse(dArray* array);
-bool array_binary_search(dArray* array, void* element, bool already_sorted);
+bool array_binary_search(dArray* array, void* element, size_t* store_index, bool already_sorted);
 #endif

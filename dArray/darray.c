@@ -311,3 +311,271 @@ bool array_insert(dArray* array, size_t index, void* new_value){
     array->used_size++; 
     return true;
 }
+
+/**
+ * @brief Shrinks the array's size to be equals to used_size
+ * Realloc's the array size to used_size, making used_size == total_size
+ * @param[in,out] array The target array
+ * @return True if success, false if the array has no elements or its already shrinked
+ */
+bool array_shrink(dArray *array){
+    if (array->used_size == 0){
+        fprintf(stderr, "ERROR! The array have no elements!\n");
+        return false;
+    }
+    if (array->used_size == array->total_size){
+        fprintf(stderr, "ERROR! The array is already shrinked!\n");
+        return false;
+    }
+
+    size_t type_size = get_type_size(array->type);
+    void* temp = realloc(array->dArray, type_size*array->used_size);
+    if (temp){
+        array->dArray = temp;
+        array->total_size = array->used_size;
+        return true;
+    }
+    fprintf(stderr, "ERROR! Unable to shrink the array!\n");
+    return false;
+}
+
+/**
+ * @brief Find specified value and stores it's index at store_index
+ * 
+ * @param[in]  array       The target
+ * @param[in]  value       The value that you want to find
+ * @param[out] store_index The variable that will store the index 
+ * @return True if success, false if element not found
+ */
+bool array_find(dArray* array, void* value, size_t* store_index){
+    size_t type_size = get_type_size(array->type);
+    int found_index = -1;
+    void* pointer = array->dArray;
+    for (int i=0; i < array->used_size; i++){
+        switch(array->type){
+            case INT:
+                if (((int*)pointer)[i] == *(int*)value){
+                    found_index = i;
+                    break;
+                }
+                break;
+            case FLOAT:
+                if (((float*)pointer)[i] == *(float*)value){
+                    found_index = i;
+                    break;
+                } 
+                break;
+            case DOUBLE:
+                if (((double*)pointer)[i] == *(double*)value){
+                    found_index = i;
+                    break;
+                }
+                break;
+        }
+        if (found_index != -1){
+            break;
+        }
+    }
+    if (found_index == -1){
+        printf("ERROR! Element not found!\n");
+        return false;
+    }
+    *store_index = (size_t)found_index;
+    return true;
+}
+
+/**
+ * @brief Utilizes C built-in qsort to sort the array
+ * 
+ * @param[in,out] array The target array
+ */
+void array_sort(dArray* array){
+    size_t type_size = get_type_size(array->type);
+    switch(array->type){
+        case INT:
+            qsort(array->dArray, array->used_size, type_size, compare_int);
+            return;
+        case FLOAT:
+            qsort(array->dArray, array->used_size, type_size, compare_float);
+            return;
+        case DOUBLE:
+            qsort(array->dArray, array->used_size, type_size, compare_double);
+            return;
+    }
+}
+/**
+ * @brief Reverses the elements on the array, trade the first for the last and so on
+ * 
+ * @param[in, out] array The target array
+ * @return True if success, false if unable to allocate auxiliar variable
+ */
+bool array_reverse(dArray* array){
+    char *header = NULL, *tail = NULL;
+    size_t type_size = get_type_size(array->type);
+    header = (char*)array->dArray;
+    tail = (char*)array->dArray + (array->used_size-1) * type_size;
+    void* temp = malloc(type_size);
+    if (!temp){
+        fprintf(stderr, "ERROR! Unable to allocate auxiliar variable!\n");
+        return false;
+    }
+    while(1){
+        memcpy(temp, tail, type_size);
+        memcpy(tail, header, type_size);
+        memcpy(header, temp, type_size);
+        header += type_size;
+        tail -= type_size;
+        if (header == tail){
+            break;
+        }
+        if (header+type_size == tail){
+            memcpy(temp, tail, type_size);
+            memcpy(tail, header, type_size);
+            memcpy(header, temp, type_size);  
+            break;
+        }
+    }
+    free(temp);
+    return true;
+}
+
+
+/**
+ * @brief Utilizes binary search to find a specified element
+ * @note It accepts a parameter that enable the function to sort the array for you
+ * since this function can not work if the array is not sorted.
+ * 
+ * @param[in] array The target array
+ * @param[in] element The element to be found
+ * @param[out] store_index The variable that will store the found index
+ * @param[in] already_sorted If false, it will use @see array_sort() to sort the array for you
+ * @return True if found, false if not found
+ */
+bool array_binary_search(dArray* array, void* element, size_t* store_index, bool already_sorted){
+    if (!already_sorted){
+        array_sort(array);
+    }
+    size_t type_size = get_type_size(array->type);
+    size_t middle_value = array->used_size / 2;
+    void* middle_value_pointer = (char*)array->dArray + (middle_value*type_size);
+    int header = 0, tail = array->used_size-1;
+    int cmp;
+    while(1){
+        switch(array->type){
+            case INT:
+                cmp = compare_int(middle_value_pointer, element);
+                break;
+            case FLOAT:
+                cmp = compare_float(middle_value_pointer, element);
+                break;
+            case DOUBLE:
+                cmp = compare_double(middle_value_pointer, element);
+                break;
+        }
+
+        if (cmp == 0){
+            *store_index = middle_value;
+            return true;
+        }
+        if (cmp > 0){
+            tail = middle_value-1;
+        }
+        if (cmp < 0){
+            header = middle_value+1;
+        }
+        if (tail < header){
+            printf("NUMBER NOT FOUND!\n");
+            return false;
+        }
+        middle_value = header + (tail-header)/2;
+        middle_value_pointer = (char*)array->dArray + (middle_value*type_size);
+    }
+}
+//Static function implementation
+
+/**
+ * @brief The actually mage here, this function reallocates the array based on it's size, grows 1.5x each time.
+ * 
+ * @param[in,out] array The target array
+ */
+static bool array_realloc(dArray* array){
+    size_t new_size = array->total_size + (array->total_size >> 1);
+    size_t type_size = get_type_size(array->type);
+
+    if (new_size == array->total_size){
+        new_size = array->total_size+1;
+    }
+
+    if (type_size == 0){
+        fprintf(stderr, "ERROR! Unable to reallocate the array!\n");
+        return false;
+    }
+    void* temp = realloc(array->dArray, new_size*type_size);
+    if (temp){
+        array->dArray = temp;;
+        array->total_size = new_size;
+        return true;
+    }
+    fprintf(stderr, "ERROR! Unable to reallocate a bigger array");
+    return false;
+}
+
+/**
+ * @brief Required function to qsort work, @see array_sort()
+ * Compares the first number with the second one.
+ * 
+ * @param[in] a The first element
+ * @param[in] b The second element
+ * @return 1 if first is bigger, 0 if is equal and -1 if it's smaller
+ */
+int compare_int(const void* a, const void* b) {
+   return (*(int*)a - *(int*)b);
+}
+
+/**
+ * @brief Required function to qsort work, @see array_sort()
+ * Compares the first number with the second one.
+ * 
+ * @param[in] a The first element
+ * @param[in] b The second element
+ * @return 1 if first is bigger, 0 if is equal and -1 if it's smaller
+ */
+int compare_float(const void* a, const void* b) {
+   float var_a = *(const float*)a;
+   float var_b = *(const float*)b;
+   if (var_a > var_b){return 1;}
+   if (var_a < var_b){return -1;}
+   else{return 0;}
+}
+
+/**
+ * @brief Required function to qsort work, @see array_sort()
+ * Compares the first number with the second one.
+ * 
+ * @param[in] a The first element
+ * @param[in] b The second element
+ * @return 1 if first is bigger, 0 if is equal and -1 if it's smaller
+ */
+int compare_double(const void* a, const void* b) {
+   double var_a = *(const double*)a;
+   double var_b = *(const double*)b;
+   if (var_a > var_b){return 1;}
+   if (var_a < var_b){return -1;}
+   else{return 0;}
+}
+
+/**
+ * @brief One of the most called function, enters the enum var_types type and return it's size
+ * 
+ * @param[in] type Is the a var_types type (INT, FLOAT, DOUBLE)
+ * @return sizeof(type)
+ */
+size_t get_type_size(var_types type){
+    switch(type){
+        case INT: return sizeof(int);
+        case FLOAT: return sizeof(float);
+        case DOUBLE: return sizeof(double);
+    }
+    fprintf(stderr, "ERROR! Invalid type!\n");
+    return 0;
+}
