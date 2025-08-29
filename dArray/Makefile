@@ -3,7 +3,7 @@
 # --- Variáveis ---
 CC = gcc
 CFLAGS = -Wall -Wextra -g -std=c11
-TARGET = meu_programa
+TARGET = output
 
 # O diretório onde os arquivos fonte (.c e .h) estão
 SRC_DIR = src
