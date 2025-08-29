@@ -1,156 +1,183 @@
+/**
+ * @file main.c
+ * @brief Demonstration and test suite for the dArray dynamic array library.
+ *
+ * === HOW TO USE ===
+ * To test a different data type, change the TEST_TYPE macro below to
+ * one of the valid options: TYPE_INT, TYPE_FLOAT, or TYPE_DOUBLE.
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "darray.h" // Inclui a sua biblioteca
+#include "darray.h" // Including your library header
 
-// --- Funções Auxiliares para Teste ---
+// ===========================================================================
+// == CONFIGURATION (VERSÃO CORRIGIDA)                                      ==
+// ===========================================================================
+// 1. Damos um "apelido" numérico para cada tipo de teste
+#define TYPE_INT    0
+#define TYPE_FLOAT  1
+#define TYPE_DOUBLE 2
+
+// 2. AGORA, você escolhe o tipo que quer testar usando o NÚMERO/APELIDO
+#define TEST_TYPE   TYPE_DOUBLE // <-- Altere aqui para TYPE_INT ou TYPE_DOUBLE
+// ===========================================================================
+
+
+// --- Preprocessor logic that now works correctly ---
+#if TEST_TYPE == TYPE_INT
+    typedef int test_t;
+    #define API_TYPE INT
+    #define FMT_STR "%d"
+    #define TEST_VALUES(i) ((test_t)(i + 1) * 10)
+    #define VAL_99 99
+    #define VAL_55 55
+    #define VAL_50 50
+#elif TEST_TYPE == TYPE_FLOAT
+    typedef float test_t;
+    #define API_TYPE FLOAT
+    #define FMT_STR "%.2f"
+    #define TEST_VALUES(i) ((test_t)(i + 1) * 10.5f)
+    #define VAL_99 99.0f
+    #define VAL_55 55.0f
+    #define VAL_50 50.0f
+#elif TEST_TYPE == TYPE_DOUBLE
+    typedef double test_t;
+    #define API_TYPE DOUBLE
+    #define FMT_STR "%.2lf"
+    #define TEST_VALUES(i) ((test_t)(i + 1) * 10.5)
+    #define VAL_99 99.0
+    #define VAL_55 55.0
+    #define VAL_50 50.0
+#else
+    #error "Invalid TEST_TYPE defined. Use TYPE_INT, TYPE_FLOAT, or TYPE_DOUBLE."
+#endif
+
+
+// O resto do seu arquivo main.c (print_array, run_test_suite, etc.) continua igual...
+// ...
+
+// --- Test Helper Functions ---
 
 /**
- * @brief Uma função auxiliar para imprimir o estado e o conteúdo de um array de inteiros.
+ * @brief A helper function to print the state and contents of the array.
  */
-void print_int_array(const char* title, dArray* array) {
+void print_array(const char* title, dArray* array) {
     printf("--- %s ---\n", title);
     if (!array) {
-        printf("Array é NULL.\n\n");
+        printf("Array is NULL.\n\n");
         return;
     }
 
-    // ANTES: Acesso direto (não compilaria com a struct opaca)
-    // printf("Capacidade: %zu | Em Uso: %zu\n", array->total_size, array->used_size);
-
-    // DEPOIS: Usando as funções públicas (getters) - CORRETO!
-    printf("Capacidade: %zu | Em Uso: %zu\n", array_get_capacity(array), array_get_size(array));
-
-    printf("Conteúdo: [ ");
-    for (size_t i = 0; i < array_get_size(array); i++) { // Usando getter no loop também!
-        int value;
+    printf("Capacity: %zu | In Use: %zu\n", array_get_capacity(array), array_get_size(array));
+    printf("Contents: [ ");
+    for (size_t i = 0; i < array_get_size(array); i++) {
+        test_t value;
         if (array_get(array, i, &value)) {
-            printf("%d ", value);
+            printf(FMT_STR " ", value);
         }
     }
     printf("]\n\n");
 }
 
 /**
- * @brief Função principal que testa todas as funcionalidades para um array de INT.
+ * @brief Main function that runs all tests for the configured type.
  */
-void test_integer_array() {
-    printf("\n>>> INICIANDO TESTES COM ARRAY DE INTEIROS <<<\n\n");
+void run_test_suite() {
+    printf("\n>>> STARTING TESTS FOR DYNAMIC ARRAY <<<\n\n");
 
-    // --- Teste: array_new ---
-    printf("1. Criando um novo array com capacidade para 5 inteiros...\n");
-    dArray* array = array_new(INT, 5);
-    print_int_array("Estado Inicial", array);
+    printf("1. Creating a new array with capacity for 5 elements...\n");
+    dArray* array = array_new(API_TYPE, 5);
+    print_array("Initial State", array);
 
-    // --- Teste: array_is_empty ---
-    printf("2. Verificando se o array está vazio...\n");
-    printf("O array está vazio? %s\n\n", array_is_empty(array) ? "Sim" : "Não");
+    printf("2. Checking if the array is empty...\n");
+    printf("Is array empty? %s\n\n", array_is_empty(array) ? "Yes" : "No");
 
-    // --- Teste: array_append ---
-    printf("3. Adicionando 7 elementos (deve forçar uma realocação)...\n");
+    printf("3. Appending 7 elements...\n");
     for (int i = 0; i < 7; i++) {
-        int val = (i + 1) * 10; // 10, 20, 30, 40, 50, 60, 70
+        test_t val = TEST_VALUES(i);
         array_append(array, &val);
     }
-    print_int_array("Após adicionar 7 elementos", array);
-    printf("O array está vazio? %s\n\n", array_is_empty(array) ? "Sim" : "Não");
-
-    // --- Teste: array_get e array_set ---
-    printf("4. Testando get/set no índice 3...\n");
-    int got_value;
-    array_get(array, 3, &got_value);
-    printf("Valor no índice 3 é: %d\n", got_value);
-    int new_value_for_set = 99;
-    printf("Alterando o valor no índice 3 para %d...\n", new_value_for_set);
-    array_set(array, 3, &new_value_for_set);
-    print_int_array("Após set", array);
-
-    // --- Teste: array_pop ---
-    printf("5. Testando pop para remover o último elemento...\n");
-    int popped_value;
-    if (array_pop(array, &popped_value)) {
-        printf("Valor removido com pop: %d\n", popped_value);
-    }
-    print_int_array("Após pop", array);
-
-    // --- Teste: array_insert ---
-    printf("6. Inserindo o valor 55 no meio do array (índice 2)...\n");
-    int value_to_insert = 55;
-    array_insert(array, 2, &value_to_insert);
-    print_int_array("Após insert", array);
-
-    // --- Teste: array_remove_by_index e array_remove_by_value ---
-    printf("7. Removendo o primeiro elemento (índice 0)...\n");
-    array_remove_by_index(array, 0);
-    print_int_array("Após remover índice 0", array);
-
-    printf("8. Removendo o elemento com valor 50...\n");
-    int value_to_remove = 50;
-    array_remove_by_value(array, &value_to_remove);
-    print_int_array("Após remover valor 50", array);
-
-    // --- Teste: array_find ---
-    printf("9. Procurando pelo índice do valor 99...\n");
-    size_t found_index;
-    int value_to_find = 99;
-    if (array_find(array, &value_to_find, &found_index)) {
-        printf("Valor %d encontrado no índice %zu.\n\n", value_to_find, found_index);
-    }
-
-    // --- Teste: array_reverse ---
-    printf("10. Revertendo o array...\n");
-    array_reverse(array);
-    print_int_array("Após reverse", array);
-
-    // --- Teste: array_sort ---
-    printf("11. Ordenando o array...\n");
-    array_sort(array);
-    print_int_array("Após sort", array);
+    print_array("After appending 7 elements", array);
     
-    // --- Teste: array_binary_search ---
-    printf("12. Buscando pelo valor 55 com busca binária...\n");
-    // (A sua função de busca binária atual imprime o resultado, não retorna o índice)
-    // Supondo que você a altere para retornar ssize_t, como sugerido:
-    // ssize_t bs_index = array_binary_search(array, &value_to_insert);
-    // printf("Busca binária encontrou o valor no índice: %zd\n\n", bs_index);
-    size_t store_index;
-    if(array_binary_search(array, &value_to_insert, &store_index, true)){
-        printf("Número 55 encontrado no index: %zu\n", store_index);
-    } // Chamando sua função atual
-    else{
-        printf("Número não encontrado!\n");
+    printf("4. Testing get/set at index 3...\n");
+    test_t got_value;
+    array_get(array, 3, &got_value);
+    printf("Value at index 3 is: " FMT_STR "\n", got_value);
+    test_t new_value_for_set = VAL_99;
+    printf("Changing value at index 3 to " FMT_STR "...\n", new_value_for_set);
+    array_set(array, 3, &new_value_for_set);
+    print_array("After set", array);
+
+    printf("5. Popping the last element...\n");
+    test_t popped_value;
+    if (array_pop(array, &popped_value)) {
+        printf("Popped value: " FMT_STR "\n", popped_value);
+    }
+    print_array("After pop", array);
+
+    printf("6. Inserting value " FMT_STR " at index 2...\n", (test_t)VAL_55);
+    test_t value_to_insert = VAL_55;
+    array_insert(array, 2, &value_to_insert);
+    print_array("After insert", array);
+
+    printf("7. Removing element at index 0...\n");
+    array_remove_by_index(array, 0);
+    print_array("After removing index 0", array);
+    
+    printf("8. Removing element with value " FMT_STR "...\n", (test_t)VAL_50);
+    test_t value_to_remove = VAL_50;
+    array_remove_by_value(array, &value_to_remove);
+    print_array("After removing value 50", array);
+
+    printf("9. Finding the index of value " FMT_STR "...\n", (test_t)VAL_99);
+    size_t found_index;
+    test_t value_to_find = VAL_99;
+    if (array_find(array, &value_to_find, &found_index)) {
+        printf("Value " FMT_STR " found at index %zu.\n\n", value_to_find, found_index);
+    }
+
+    printf("10. Reversing the array...\n");
+    array_reverse(array);
+    print_array("After reverse", array);
+
+    printf("11. Sorting the array...\n");
+    array_sort(array);
+    print_array("After sort", array);
+    
+    printf("12. Searching for value " FMT_STR " with binary search...\n", (test_t)VAL_55);
+    size_t binary_search_index;
+    if (array_binary_search(array, &value_to_insert, &binary_search_index, true)) {
+        printf("Value " FMT_STR " found at index: %zu\n", value_to_insert, binary_search_index);
+    } else {
+        printf("Value " FMT_STR " not found!\n", value_to_insert);
     }
     printf("\n");
 
-    // --- Teste: array_shrink ---
-    printf("13. Reduzindo a capacidade do array para o tamanho exato em uso...\n");
+    printf("13. Shrinking the array to fit its contents...\n");
     array_shrink(array);
-    print_int_array("Após shrink", array);
+    print_array("After shrink", array);
 
-    // --- Teste: array_clear ---
-    printf("14. Limpando o array...\n");
+    printf("14. Clearing the array...\n");
     array_clear(array);
-    print_int_array("Após clear", array);
+    print_array("After clear", array);
 
-    // --- Teste: array_destroy ---
-    printf("15. Destruindo o array...\n");
-    array_destroy(&array);
-    print_int_array("Após destroy", array);
+    printf("15. Deleting the array...\n");
+    array_delete(&array);
+    print_array("After delete", array);
 }
 
 
-// --- Função Main ---
+// --- Main Function ---
 int main(void) {
     printf("=======================================\n");
-    printf("== INICIANDO TESTE DA BIBLIOTECA DARRAY ==\n");
+    printf("==   STARTING DARRAY LIBRARY TEST    ==\n");
     printf("=======================================\n");
 
-    test_integer_array();
-
-    // Você pode adicionar mais funções de teste aqui para FLOAT e DOUBLE!
-    // test_double_array();
+    run_test_suite();
 
     printf("\n=======================================\n");
-    printf("==   TESTES CONCLUÍDOS COM SUCESSO   ==\n");
+    printf("==      ALL TESTS COMPLETED          ==\n");
     printf("=======================================\n");
 
     return 0;

@@ -142,10 +142,9 @@ bool array_pop(dArray* array, void* store_var){
  * @returns             True if success, false if the element was not found
  */
 bool array_remove_by_value(dArray* array, void* value){
-    size_t type_size = get_type_size(array->type);
     int found_index = -1;
     void* pointer = array->dArray;
-    for (int i=0; i < array->used_size; i++){
+    for (int i=0; i < (int)array->used_size; i++){
         switch(array->type){
             case INT:
                 if (((int*)pointer)[i] == *(int*)value){
@@ -176,7 +175,7 @@ bool array_remove_by_value(dArray* array, void* value){
         return false;
     }
 
-    for (int i = found_index; i < array->used_size-1; i ++){
+    for (int i = found_index; i < (int)array->used_size-1; i ++){
         switch (array->type){
             case INT:
                 ((int*)pointer)[i] = ((int*)pointer)[i+1];
@@ -351,10 +350,9 @@ bool array_shrink(dArray *array){
  * @return True if success, false if element not found
  */
 bool array_find(dArray* array, void* value, size_t* store_index){
-    size_t type_size = get_type_size(array->type);
     int found_index = -1;
     void* pointer = array->dArray;
-    for (int i=0; i < array->used_size; i++){
+    for (int i=0; i < (int)array->used_size; i++){
         switch(array->type){
             case INT:
                 if (((int*)pointer)[i] == *(int*)value){
